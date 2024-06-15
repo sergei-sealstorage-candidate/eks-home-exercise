@@ -1,5 +1,4 @@
 # eks-home-exercise
-Take Home Exercise
 
 This is the Step by Step documentation of what have been done during SealStorage Take Home Assigment
 
