@@ -179,3 +179,198 @@ module "eks" {
 ```
 
 After adding this module into `main.tf` we need to apply these changes.
+
+## Step 5
+
+### EKS Auth config
+
+After EKS Cluster created successefully we need to update local kubeconfig in order to set up communication with the EKS cluster. We can do it using aws cli command:
+
+```
+$ aws eks update-kubeconfig --name my-cluster --profile=SealStorage
+```
+
+after that we can check if everything works as expected. we can get list of naspaces for example, it should give us defult list of naspace
+
+```
+$ kubectl get namespace -o wide
+NAME              STATUS   AGE
+default           Active   29m
+kube-node-lease   Active   29m
+kube-public       Active   29m
+kube-system       Active   29m
+```
+
+So now we can add user access for EKS cluster by creating ConfigMap with mapping AWS user to the Clusetr groups
+
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapUsers: |
+    - userarn: arn:aws:iam::339712846046:user/admin
+      username: admin
+      groups:
+        - system:masters
+```
+after that we should run command to apply this config
+
+```
+$ kubectl apply -f aws-auth.yml
+```
+
+### Deploy Kubernetes resources
+
+We need to create 3 pods where each pods running in separate Node. After accessing this pods we need to get information about pods. In order to do so we going to use **nginx** web server. To display node and pod information we can use **ConfigMap** for creating template. As following:
+
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: html-config
+data:
+  startup-script.sh: |
+    #!/bin/sh
+    cat <<EOF > /usr/share/nginx/html/index.html
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>NGINX Pod Information</title>
+    </head>
+    <body>
+      <h1>NGINX Pod Information</h1>
+      <p><b>Pod Name:</b> ${POD_NAME}</p>
+      <p><b>Node Name:</b> ${NODE_NAME}</p>
+      <p><b>Namespace:</b> ${POD_NAMESPACE}</p>
+      <p><b>Pod IP:</b> ${POD_IP}</p>
+    </body>
+    </html>
+    EOF
+```
+
+Next step we need to declare yaml for Nginx Deployment. Which looks as following:
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      initContainers:
+      - name: init-script
+        image: busybox
+        command:
+          - /bin/sh
+          - -c
+          - |
+            cp /config/startup-script.sh /scripts/startup-script.sh
+            chmod +x /scripts/startup-script.sh
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+        - name: scripts
+          mountPath: /scripts
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+        - name: scripts
+          mountPath: /scripts
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - |
+            /scripts/startup-script.sh
+      volumes:
+      - name: html
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: html-config
+      - name: scripts
+        emptyDir: {}
+```
+
+And in order to make public access for Nginx server with LoadBalancer we need to define service that will expose Nginx pods into the LoadBalance.  
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  selector:
+    app: nginx
+```
+
+At the end we need to apply all this changes. in order to make it more automated way. it make sence to create crit for this service deployment. Which looks as following:
+
+```
+#!/bin/bash
+
+# Deploy Kubernetes resources
+kubectl apply -f nginx-config.yaml
+kubectl apply -f k8s-deployment.yaml
+kubectl apply -f k8s-service.yaml
+
+# Get the LoadBalancer URL
+echo "Waiting for the LoadBalancer to get an external IP..."
+sleep 120
+kubectl get services
+```
+
+Now we can deploy all k8s resource using above script
+
+```
+$ chmod +x deploy.sh
+$ ./deploy.sh
+```
+
+After finishing of all resource deployment we should be able to access load balancer URL
+
+```
+curl http://a37d4a4eaf4bc49f4a46989e34bb456a-d36adbd74180ed5b.elb.us-east-1.amazonaws.com/
+```
