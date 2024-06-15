@@ -20,7 +20,7 @@ This is the Step by Step documentation of what have been done during SealStorage
   - [EKS Auth config](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#eks-auth-config)
   - [Deploy Kubernetes resources](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#deploy-kubernetes-resources)
 * [Step #7](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-7)
-  - [Future Automation Optimizations](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#future-optimizations)
+  - [Future Automation Optimizations](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#future-automation-optimizations)
   - [Issues During Exercise](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#issues-during-exercise)
  
 
