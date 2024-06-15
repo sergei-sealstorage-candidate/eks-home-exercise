@@ -9,3 +9,7 @@ data:
       username: admin
       groups:
         - system:masters
+    - userarn: arn:aws:iam::339712846046:user/sealstorage-user
+      username: readonly
+      groups:
+        - system:masters
