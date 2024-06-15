@@ -1,7 +1,35 @@
 # eks-home-exercise
 Take Home Exercise
 
-This is the Step by Step documentation of what has been done during this Take Home Assigment
+This is the Step by Step documentation of what have been done during SealStorage Take Home Assigment
+
+## Table
+
+* [Step #1](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-1)
+  - [Cloud Environment Prep](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#cloud-environment-prep)
+* [Step #2](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-2)
+  - [Local Environment Set Up](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#local-environment-set-up)  
+* [Step #3](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-3)
+  - [Terraform Set Up](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#terraform-set-up)
+* [Step #4](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-4)
+  - [Networking and VPC](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#networking-and-vpc)
+  - [EKS Cluster creation](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#eks-cluster-creation)
+* [Step #5](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-5)
+  - [EKS Auth config](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#eks-auth-config)
+  - [Deploy Kubernetes resources](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#deploy-kubernetes-resources)
+* [Step #6](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-6)
+  - [EKS Auth config](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#eks-auth-config)
+  - [Deploy Kubernetes resources](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#deploy-kubernetes-resources)
+* [Step #7](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-7)
+  - [Future otimizations](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#future-otimizations)
+  - [Issues During Exercise](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#issues-during-exercise)
+ 
+
+## Final Result URL
+
+```
+curl http://a37d4a4eaf4bc49f4a46989e34bb456a-d36adbd74180ed5b.elb.us-east-1.amazonaws.com/
+```
 
 ## Step 1
 
@@ -109,9 +137,9 @@ Do you want to copy existing state to the new backend?
 
 ### Networking and VPC
 
-In order to create EKS Cluster first we need to create Networking for future EKS Cluster. Inorder to set up network for EKS we gonna use VPC and related to VPC module. VPC module that you can see below creates 3 subnets across different Availability Zones.
+In order to create EKS Cluster first we need to create Networking for future EKS Cluster. Inorder to set up network for EKS we going to use VPC and related to VPC module. VPC module that you can see below creates 3 subnets across different Availability Zones.
 
-VPC Module
+[VPC Module](https://github.com/sergei-sealstorage-candidate/eks-home-exercise/tree/main/infrastructure/module)
 
 After we should include new VPC module into `main.tf`
 
@@ -374,3 +402,99 @@ After finishing of all resource deployment we should be able to access load bala
 ```
 curl http://a37d4a4eaf4bc49f4a46989e34bb456a-d36adbd74180ed5b.elb.us-east-1.amazonaws.com/
 ```
+
+## Step 6
+
+### Automation
+
+For the infrastractrue automation and cintinues delevery we can use GitHub Action together with terraform. Any new Pull request can show us the terraform plan of the new infrastructure and give infrastructure verification before code review. This automation can be extend as well for k8s resources deployment. You can find the Github action terraform plan script bellow:
+
+```
+name: Terraform Plan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  terraform:
+    name: 'Terraform Plan'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v2
+
+    - name: 'Set up Terraform'
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.5.7 # Match with Local Terraform version
+
+    - name: 'Terraform Init and Plan'
+      working-directory: ./infrastructure
+      run: terraform init && terraform plan
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: 'us-east-1'
+```
+
+In order to run this GitHub action we need to add **AWS_ACCESS_KEY_ID** and **AWS_SECRET_ACCESS_KEY** into repository as secrets.
+
+If pull request look good for code reviewr and it's ready to be merge we can create the following GitHub Action script:
+
+```
+name: Terraform Apply
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v2
+
+    - name: 'Set up Terraform'
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.5.7 # Match with Local Terraform version
+
+    - name: 'Terraform Apply'
+      working-directory: ./infrastructure
+      run: terraform init && terraform apply -auto-approve
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: 'us-east-1'
+```
+
+This github action script will be executed any time when Pull request is merged with **main** branch.
+
+## Step 7
+
+### Future Automation Otimizations
+
+* For future automation optimization we can improve piple by adding source condition when inftrastructure changes happened in this case terrafrom plan and apply will be executed.
+
+* We can create helm charts and add ArgoCD in order to manage Kubernates Resources and provisening any service changes
+
+* As well we can add [**terragrun**](https://terragrunt.gruntwork.io/) in order to manage different envirment such as production, development, staging for existing **terrform** modules.
+
+* For better CloudSecurity support we can strt using [**HashiCorp Vault**](https://www.vaultproject.io/) for better secrtes managing and idenety-based access automation
+
+### Issues During Exercise
+
+One of the issues I have faced during this exercise implemntation is that LoadBalancer returned result with the big latency 9s or even more sometime. The reason why it happned because the service routed external traffic to any pod within the cluster, regardless of which node received the traffic. It resulted to long latency delays. Which means that traffic was forwarded between nodes to reach a pod that matches the service’s selector. Which seems like resulted in lond node lookup. In order to fix it I have changed the service declaration with 
+
+```
+externalTrafficPolicy: Cluster -> externalTrafficPolicy: Local
+```
+It reduced the latency which only route external traffic to the pods on the node where the traffic was received. This means that the traffic is not forwarded between nodes, which provide some benefits. Since traffic is not forwarded between nodes, it can reduce latency by eliminating an extra network hop.
+
+In order to find this issue I was looking into log of the pod in order to find out if the server itself is fast enogh also I was checking CloudWatch log for Created Load Balancers there where findout about big latance. 
