@@ -104,3 +104,32 @@ Do you want to copy existing state to the new backend?
   Enter a value: yes
 
 ````
+
+## Step 4
+
+### Networking and VPC
+
+In order to create EKS Cluster first we need to create Networking for future EKS Cluster. Inorder to set up network for EKS we gonna use VPC and related to VPC module. VPC module that you can see below creates 3 subnets across different Availability Zones.
+
+VPC Module
+
+After we should include new VPC module into `main.tf`
+
+```
+module "tf_s3_bucket" {
+  source = "./module/s3"
+  tf_s3_bucket_name = "sealstorage-tf-state"   
+}
+
+module "eks_vpc" {
+  source     = "./module/vpc"
+  cidr_block = "10.0.0.0/16"
+  public_ip_on_launch = true
+}
+```
+
+Run `$ terraform apply`
+
+### EKS Cluster creation
+
+In order to create EKS Cluster first we need to create Networking for future EKS Cluster. Inorder to set up network for EKS we gonna use VPC and related to VPC module. 
