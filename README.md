@@ -18,3 +18,21 @@ $ aws organizations create-account --email SerKhazov+sealstorage@gmail.com --acc
 The next step we need to Switch Role using AWS Console using New Account ID or we can do it using aws-cli command `aws sts assume-role` passing new account role arn. After switching role we get logged in into newly create account *SealStorage-PlayGround* so we can create a new users and permissions. For this test we will create one user only with cli access and one ReadOnly User with AWS Console access. AWS Console ReadOnly user will be shared with SealStorage engineers.
 
 ## Step 2
+
+Local Environment Set Up
+
+After Creating nesessary users we need to create additional AWS Profile config on local envirment in order to comminicate with the cloud. We can create New Profile Config using aws-cli and 
+
+```
+aws configure --profile SealStorage
+```
+
+Enter AWS Access Keys and AWS Secret Keys
+
+```
+AWS Access Key ID [None]: <YourAccessKeyID> # Hidden from sec purpuse
+AWS Secret Access Key [None]: <YourSecretAccessKey> # Hidden from sec purpuse
+Default region name [None]: 'us-east-1'
+Default output format [None]: json
+```
+
