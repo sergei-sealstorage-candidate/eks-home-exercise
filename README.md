@@ -20,7 +20,7 @@ This is the Step by Step documentation of what have been done during SealStorage
   - [EKS Auth config](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#eks-auth-config)
   - [Deploy Kubernetes resources](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#deploy-kubernetes-resources)
 * [Step #7](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#step-7)
-  - [Future otimizations](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#future-otimizations)
+  - [Future Automation Optimizations](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#future-optimizations)
   - [Issues During Exercise](https://github.com/sergei-sealstorage-candidate/eks-home-exercise?tab=readme-ov-file#issues-during-exercise)
  
 
@@ -483,7 +483,7 @@ This github action script will be executed any time when Pull request is merged 
 
 ## Step 7
 
-### Future Automation Otimizations
+### Future Automation Optimizations
 
 * For future automation optimization we can improve piple by adding source condition when inftrastructure changes happened in this case terrafrom plan and apply will be executed.
 
