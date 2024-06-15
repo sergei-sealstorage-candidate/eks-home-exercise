@@ -31,6 +31,10 @@ This is the Step by Step documentation of what have been done during SealStorage
 curl http://a37d4a4eaf4bc49f4a46989e34bb456a-d36adbd74180ed5b.elb.us-east-1.amazonaws.com/
 ```
 
+[View GitHub Action Builds](https://github.com/sergei-sealstorage-candidate/eks-home-exercise/actions)
+
+[View AWS EKS Cluster](https://us-east-1.console.aws.amazon.com/eks/home?region=us-east-1#/clusters/my-cluster)
+
 ## Step 1
 
 ### Cloud Envirment Prep
@@ -475,6 +479,8 @@ jobs:
 ```
 
 This github action script will be executed any time when Pull request is merged with **main** branch.
+
+### [View GitHub Action Build](https://github.com/sergei-sealstorage-candidate/eks-home-exercise/actions)
 
 ## Step 7
 
