@@ -132,4 +132,50 @@ Run `$ terraform apply`
 
 ### EKS Cluster creation
 
-In order to create EKS Cluster first we need to create Networking for future EKS Cluster. Inorder to set up network for EKS we gonna use VPC and related to VPC module. 
+In order to create EKS cluster we are going to use defind terraform module `terraform-aws-modules/eks/aws` from terraform repository and will provide desire node count size 3 and instance type `t3.small` 
+
+```
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 20.0"
+
+  cluster_name    = "my-cluster" # forgot to change claster name from terraform module usage example =/
+  cluster_version = "1.30"
+
+  cluster_endpoint_public_access  = true
+
+  cluster_addons = {
+    coredns                = {}
+    eks-pod-identity-agent = {}
+    kube-proxy             = {}
+    vpc-cni                = {}
+  }
+
+  vpc_id                   = module.eks_vpc.aws_vpc_id
+  subnet_ids               = module.eks_vpc.aws_subnet_ids
+
+  eks_managed_node_group_defaults = {
+    instance_types = ["t3.small"]
+  }
+
+  eks_managed_node_groups = {
+    sealstorage = {
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_types = ["t3.small"]
+
+      min_size     = 3
+      max_size     = 3
+      desired_size = 3
+    }
+  }
+
+  enable_cluster_creator_admin_permissions = true
+
+  tags = {
+    Environment = "dev"
+    Terraform   = "true"
+  }
+}
+```
+
+After adding this module into `main.tf` we need to apply these changes.
