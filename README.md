@@ -489,7 +489,7 @@ This github action script will be executed any time when Pull request is merged 
 
 * We can create helm charts and add ArgoCD in order to manage Kubernates Resources and provisening any service changes
 
-* As well we can add [**terragrun**](https://terragrunt.gruntwork.io/) in order to manage different envirment such as production, development, staging for existing **terrform** modules.
+* As well we can add [**terragrunt**](https://terragrunt.gruntwork.io/) in order to manage different envirment such as production, development, staging for existing **terrform** modules.
 
 * For better CloudSecurity support we can strt using [**HashiCorp Vault**](https://www.vaultproject.io/) for better secrtes managing and idenety-based access automation
 
